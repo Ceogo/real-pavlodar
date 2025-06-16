@@ -1,4 +1,4 @@
-# Real Estate API Documentation
+# Real Pavlodar API Documentation
 
 ## Overview
 This API provides endpoints to retrieve real estate properties with various filtering options.
