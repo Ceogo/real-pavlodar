@@ -20,6 +20,19 @@ class FeedController extends Controller
         $user = $request->user();
         $query = Realty::query()->where('status', 'active');
 
+        // Validate favorites parameter if provided
+        $requestFavorites = [];
+        if ($request->has('favorites')) {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'favorites' => 'array',
+                'favorites.*' => 'integer|exists:realties,id',
+            ]);
+
+            if (!$validator->fails()) {
+                $requestFavorites = $request->favorites;
+            }
+        }
+
         // If user is authenticated, personalize the feed
         if ($user) {
             // Get user preferences
@@ -79,6 +92,26 @@ class FeedController extends Controller
                     END,
                     ABS(price - ?)", [$mostCommonType, $avgPrice]);
             }
+        } elseif (!empty($requestFavorites)) {
+            // For guest users with favorites, prioritize similar properties
+            $guestFavorites = Realty::whereIn('id', $requestFavorites)->get();
+
+            if ($guestFavorites->count() > 0) {
+                // Get the most common property type from favorites
+                $favoriteTypes = $guestFavorites->pluck('type')->countBy()->sortDesc();
+                $mostCommonType = $favoriteTypes->keys()->first();
+
+                // Get the average price from favorites
+                $avgPrice = $guestFavorites->avg('price');
+
+                // Order by similarity to favorites
+                $query->orderByRaw("
+                    CASE
+                        WHEN type = ? THEN 1
+                        ELSE 2
+                    END,
+                    ABS(price - ?)", [$mostCommonType, $avgPrice]);
+            }
         }
 
         // Apply additional filters from request
@@ -120,6 +153,12 @@ class FeedController extends Controller
 
             $realties->getCollection()->transform(function ($realty) use ($userFavoriteIds) {
                 $realty->is_favorite = in_array($realty->id, $userFavoriteIds);
+                return $realty;
+            });
+        } elseif (!empty($requestFavorites)) {
+            // For guest users, mark favorites based on the request parameter
+            $realties->getCollection()->transform(function ($realty) use ($requestFavorites) {
+                $realty->is_favorite = in_array($realty->id, $requestFavorites);
                 return $realty;
             });
         }
