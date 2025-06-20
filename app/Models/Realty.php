@@ -51,4 +51,13 @@ class Realty extends Model
     {
         return $this->images()->exists();
     }
+
+    /**
+     * Get the users who favorited this realty.
+     */
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'user_favorites', 'realty_id', 'user_id')
+                    ->withTimestamps();
+    }
 }

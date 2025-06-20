@@ -27,6 +27,31 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get the user's favorite realties.
+     */
+    public function favorites()
+    {
+        return $this->hasMany(UserFavorite::class);
+    }
+
+    /**
+     * Get the user's favorite realties as a collection of Realty models.
+     */
+    public function favoriteRealties()
+    {
+        return $this->belongsToMany(Realty::class, 'user_favorites', 'user_id', 'realty_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get the user's preferences.
+     */
+    public function preference()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
