@@ -12,7 +12,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Update existing statuses to match new values
         DB::table('realties')
             ->where('status', 'active')
             ->update(['status' => 'active']);
