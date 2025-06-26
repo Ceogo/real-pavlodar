@@ -83,4 +83,34 @@ class User extends Authenticatable
     {
         return $this->role === 'realtor';
     }
+
+    /**
+     * Check if the user is a moderator
+     *
+     * @return bool
+     */
+    public function isModerator(): bool
+    {
+        return $this->role === 'moderator';
+    }
+
+    /**
+     * Check if the user is an administrator
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'administrator';
+    }
+
+    /**
+     * Check if the user has moderator permissions (moderator or admin)
+     *
+     * @return bool
+     */
+    public function hasModeratorPermissions(): bool
+    {
+        return $this->isModerator() || $this->isAdmin();
+    }
 }
